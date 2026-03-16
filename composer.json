@@ -2,7 +2,7 @@
 	"name": "mr-older/unimax",
     "type": "library",
 	"license": "MIT",
-	"description": "Universal PDO operations",
+	"description": "MAX messenging",
     "homepage": "https://github.com/mr-older/unimax",
 	"keywords": [
 		"max",

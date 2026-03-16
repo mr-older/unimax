@@ -8,14 +8,14 @@ class Message
 
 	function __construct($user_id, $access_token)
 	{
-		if(!empty($access_token)) {
+		if(empty($access_token)) {
 			$this->error = "No access_token";
 			return false;
 		}
 
 		$this->access_token = $access_token;
 
-		if(!empty($user_id)) {
+		if(empty($user_id)) {
 			$this->error = "No user id";
 			return false;
 		}
