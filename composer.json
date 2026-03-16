@@ -2,7 +2,7 @@
 	"name": "mr-older/unimax",
     "type": "library",
 	"license": "MIT",
-	"description": "MAX messenging",
+	"description": "Simple messaging for MAX messenger",
     "homepage": "https://github.com/mr-older/unimax",
 	"keywords": [
 		"max",
@@ -13,5 +13,8 @@
 	],
     "require": { "php": "^7.0 || ^8.0" },
 	"autoload": {
+		"psr-4": {
+			"Unimax\\": "src/Unimax"
+        }
     }
 }
