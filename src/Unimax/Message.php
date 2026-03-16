@@ -5,6 +5,7 @@ namespace UniMax;
 class Message
 {
 	public $error, $url = "https://platform-api.max.ru/";
+	private $curl_handle;
 
 	function __construct($user_id, $access_token)
 	{
@@ -108,10 +109,12 @@ class Message
 
 	private function do_CURL_POST($api_url, $jsonString)
 	{
-		if(curl_setopt($this->curl_handle, CURLOPT_POST, 1) === false) {
+		if(!$this->isCurlHandle($this->curl_handle)) {
 			$this->error = "Bad CURL handle";
 			return false;
 		}
+
+		curl_setopt($this->curl_handle, CURLOPT_POST, 1);
 		curl_setopt($this->curl_handle, CURLOPT_URL, $api_url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}", "Content-Type: application/json"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
@@ -127,6 +130,11 @@ class Message
 
 	private function do_CURL_GET($api_url)
 	{
+		if(!$this->isCurlHandle($this->curl_handle)) {
+			$this->error = "Bad CURL handle";
+			return false;
+		}
+
 		curl_setopt($this->curl_handle, CURLOPT_POST, 0);
 		curl_setopt($this->curl_handle, CURLOPT_URL, $api_url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}"));
@@ -137,5 +145,18 @@ class Message
 		$answer = curl_exec($this->curl_handle);
 		curl_close($this->curl_handle);
 		return $answer;
+	}
+
+	public static function isCurlHandle($input)
+	{
+		if(is_resource($input)) {
+			return get_resource_type($input) === 'curl';
+		}
+
+		if(is_object($input)) {
+			return $input instanceof CurlHandle;
+		}
+
+		return false;
 	}
 }
