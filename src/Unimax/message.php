@@ -108,7 +108,10 @@ class Message
 
 	private function do_CURL_POST($api_url, $jsonString)
 	{
-		curl_setopt($this->curl_handle, CURLOPT_POST, 1);
+		if(curl_setopt($this->curl_handle, CURLOPT_POST, 1) === false) {
+			$this->error = "Bad CURL handle";
+			return false;
+		}
 		curl_setopt($this->curl_handle, CURLOPT_URL, $api_url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}", "Content-Type: application/json"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
