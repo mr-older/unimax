@@ -4,7 +4,7 @@ namespace UniMax;
 
 class Message
 {
-	public $error, $url = "https://platform-api.max.ru/";
+	public $error, $api_url = "https://platform-api.max.ru/";
 	private $curl_handle;
 
 	function __construct($user_id, $access_token)
@@ -24,7 +24,7 @@ class Message
 		$this->user_id = $user_id;
 
 		if(!($this->curl_handle = curl_init())) {
-			$this->error = "Failed to create CURL handle @$api_auth_url";
+			$this->error = "Failed to create CURL handle @{$this->api_url}";
 			return false;
 		}
 
@@ -33,7 +33,7 @@ class Message
 
  	private function setQueryParams($params = [])
 	{
-		$url = $this->url."messages";
+		$url = $this->api_url."messages";
 		if(empty($params)) return $url;
 		$url.= "?";
 
@@ -76,7 +76,7 @@ class Message
  	public function getGroupChats()
 	{
 		$url = "https://platform-api.max.ru/chats";
-		if(($answer = $this->do_CURL_GET($url)) === false) {
+		if(($answer = $this->do_CURL_GET()) === false) {
 			$this->error = "CURL error @{$this->api_url}";
 			return false;
 		}
@@ -87,27 +87,26 @@ class Message
  	public function sendMessage($chat_id, $text, $keyboard = null)
 	{
 		$query_params = [];
-		$query_params["chat_id"] = $chat_id; //-71219747198340;
+		$query_params["chat_id"] = $chat_id;
 		$query_params["user_id"] = $this->user_id;
-//
 #		$query_params["disable_link_preview"] = false;
 		$url = $this->setQueryParams($query_params);
 		$payload = $this->makePayload("message", $text);
-#		var_dump($url);
-		if(($answer = $this->do_CURL_POST($url, json_encode($payload))) === false) {
+
+		if(($answer = $this->do_CURL_POST(json_encode($payload))) === false) {
 			$this->error = "Request error @{$this->api_url}";
 			return false;
 		}
 
 		if(empty($answer) || ($dejsoned_answer = json_decode($answer, true)) === false) {
-			$this->error = "Can`t dejson answer from $url";
+			$this->error = "Can`t dejson answer from {$this->api_url}";
 			return false;
 		}
 
 		return $dejsoned_answer;
 	}
 
-	private function do_CURL_POST($api_url, $jsonString)
+	private function do_CURL_POST($jsonString)
 	{
 		if(!$this->isCurlHandle($this->curl_handle)) {
 			$this->error = "Bad CURL handle";
@@ -115,7 +114,7 @@ class Message
 		}
 
 		curl_setopt($this->curl_handle, CURLOPT_POST, 1);
-		curl_setopt($this->curl_handle, CURLOPT_URL, $api_url);
+		curl_setopt($this->curl_handle, CURLOPT_URL, $this->api_url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}", "Content-Type: application/json"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
 		curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
@@ -128,7 +127,7 @@ class Message
 		return $answer;
 	}
 
-	private function do_CURL_GET($api_url)
+	private function do_CURL_GET()
 	{
 		if(!$this->isCurlHandle($this->curl_handle)) {
 			$this->error = "Bad CURL handle";
@@ -136,7 +135,7 @@ class Message
 		}
 
 		curl_setopt($this->curl_handle, CURLOPT_POST, 0);
-		curl_setopt($this->curl_handle, CURLOPT_URL, $api_url);
+		curl_setopt($this->curl_handle, CURLOPT_URL, $this->api_url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
 		curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
