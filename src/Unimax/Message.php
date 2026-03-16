@@ -76,8 +76,8 @@ class Message
  	public function getGroupChats()
 	{
 		$url = "https://platform-api.max.ru/chats";
-		if(($answer = $this->do_CURL_GET()) === false) {
-			$this->error = "CURL error @{$this->api_url}";
+		if(($answer = $this->do_CURL_GET($url)) === false) {
+			$this->error = "CURL error @$url";
 			return false;
 		}
 
@@ -93,20 +93,20 @@ class Message
 		$url = $this->setQueryParams($query_params);
 		$payload = $this->makePayload("message", $text);
 
-		if(($answer = $this->do_CURL_POST(json_encode($payload))) === false) {
-			$this->error = "Request error @{$this->api_url}";
+		if(($answer = $this->do_CURL_POST($url, json_encode($payload))) === false || strpos($answer, "method.not.found")) {
+			$this->error.= " Request error @{$this->api_url}";
 			return false;
 		}
 
 		if(empty($answer) || ($dejsoned_answer = json_decode($answer, true)) === false) {
-			$this->error = "Can`t dejson answer from {$this->api_url}";
+			$this->error = "Can`t dejson answer from $url";
 			return false;
 		}
 
 		return $dejsoned_answer;
 	}
 
-	private function do_CURL_POST($jsonString)
+	private function do_CURL_POST($url, $jsonString)
 	{
 		if(!$this->isCurlHandle($this->curl_handle)) {
 			$this->error = "Bad CURL handle";
@@ -114,7 +114,7 @@ class Message
 		}
 
 		curl_setopt($this->curl_handle, CURLOPT_POST, 1);
-		curl_setopt($this->curl_handle, CURLOPT_URL, $this->api_url);
+		curl_setopt($this->curl_handle, CURLOPT_URL, $url);
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}", "Content-Type: application/json"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
 		curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
@@ -123,11 +123,11 @@ class Message
 		curl_setopt($this->curl_handle, CURLOPT_POSTFIELDS, $jsonString);
 #		curl_setopt($this->curl_handle, CURLOPT_COOKIE, "sid={$this->access_token}");
 		$answer = curl_exec($this->curl_handle);
-		curl_close($this->curl_handle);
+#		curl_close($this->curl_handle);
 		return $answer;
 	}
 
-	private function do_CURL_GET()
+	private function do_CURL_GET($url)
 	{
 		if(!$this->isCurlHandle($this->curl_handle)) {
 			$this->error = "Bad CURL handle";
@@ -142,7 +142,7 @@ class Message
 		curl_setopt($this->curl_handle, CURLOPT_CONNECTTIMEOUT, 5);
 		curl_setopt($this->curl_handle, CURLOPT_SSL_VERIFYPEER, false);
 		$answer = curl_exec($this->curl_handle);
-		curl_close($this->curl_handle);
+#		curl_close($this->curl_handle);
 		return $answer;
 	}
 
