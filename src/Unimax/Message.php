@@ -124,7 +124,16 @@ class Message
 #		curl_setopt($this->curl_handle, CURLOPT_COOKIE, "sid={$this->access_token}");
 		$answer = curl_exec($this->curl_handle);
 #		curl_close($this->curl_handle);
-		return $answer;
+		// string(73) "{"code":"chat.not.found","message":"Chat with user 7017264117 not found"}"
+		if(strpos($answer, "message") === false) return $answer;
+
+		if(($answer = json_decode($answer, true)) === false || empty($answer['message'])) {
+			$this->error = "Can`t dejson answer from Max server";
+			return false;
+		}
+
+		$this->error = "Error sending messge via Max server: `{$answer['message']}`";
+		return false;
 	}
 
 	private function do_CURL_GET($url)
@@ -153,7 +162,7 @@ class Message
 		}
 
 		if(is_object($input)) {
-			return $input instanceof CurlHandle;
+			return $input instanceof \CurlHandle;
 		}
 
 		return false;
