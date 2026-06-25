@@ -4,7 +4,7 @@ namespace UniMax;
 
 class Message
 {
-	public $error, $api_url = "https://platform-api.max.ru/";
+	public $error, $api_url = "https://platform-api2.max.ru/", $timeout = 5;
 	private $curl_handle;
 
 	function __construct($user_id, $access_token)
@@ -49,7 +49,9 @@ class Message
 		switch($request) {
 			case "message":
 				$payload = [
-					"text" => $text
+					"text" => $text,
+					"format" => $format,
+					"notify" => true		// false for silent message
 				];
 			 break;
 			default: break;
@@ -75,7 +77,7 @@ class Message
 
  	public function getGroupChats()
 	{
-		$url = "https://platform-api.max.ru/chats";
+		$url = $api_url."chats";
 		if(($answer = $this->do_CURL_GET($url)) === false) {
 			$this->error = "CURL error @$url";
 			return false;
@@ -84,14 +86,14 @@ class Message
 		return $answer;
 	}
 
- 	public function sendMessage($chat_id, $text, $keyboard = null)
+ 	public function sendMessage($chat_id, $text, $format = "markdown", $keyboard = null)
 	{
 		$query_params = [];
 		$query_params["chat_id"] = $chat_id;
 		$query_params["user_id"] = $this->user_id;
 #		$query_params["disable_link_preview"] = false;
 		$url = $this->setQueryParams($query_params);
-		$payload = $this->makePayload("message", $text);
+		$payload = $this->makePayload("message", $format, $text);
 
 		if(($answer = $this->do_CURL_POST($url, json_encode($payload))) === false || strpos($answer, "method.not.found")) {
 			$this->error.= " Request error @{$this->api_url}";
@@ -118,10 +120,9 @@ class Message
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}", "Content-Type: application/json"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
 		curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_handle, CURLOPT_CONNECTTIMEOUT, 5);
+		curl_setopt($this->curl_handle, CURLOPT_CONNECTTIMEOUT, $this->timeout);
 		curl_setopt($this->curl_handle, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($this->curl_handle, CURLOPT_POSTFIELDS, $jsonString);
-#		curl_setopt($this->curl_handle, CURLOPT_COOKIE, "sid={$this->access_token}");
 		$answer = curl_exec($this->curl_handle);
 #		curl_close($this->curl_handle);
 		// string(73) "{"code":"chat.not.found","message":"Chat with user 7017264117 not found"}"
@@ -148,7 +149,7 @@ class Message
 		curl_setopt($this->curl_handle, CURLOPT_HTTPHEADER, array("Authorization: {$this->access_token}"));
 		curl_setopt($this->curl_handle, CURLOPT_HEADER, false);
 		curl_setopt($this->curl_handle, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_handle, CURLOPT_CONNECTTIMEOUT, 5);
+		curl_setopt($this->curl_handle, CURLOPT_CONNECTTIMEOUT, $this->timeout);
 		curl_setopt($this->curl_handle, CURLOPT_SSL_VERIFYPEER, false);
 		$answer = curl_exec($this->curl_handle);
 #		curl_close($this->curl_handle);
