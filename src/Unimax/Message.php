@@ -44,7 +44,7 @@ class Message
 		return trim($url, "&");
 	}
 
- 	private function makePayload($request, $text)
+ 	private function makePayload($request, $format, $text)
 	{
 		switch($request) {
 			case "message":
